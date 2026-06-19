@@ -1,0 +1,1 @@
+UPDATE public.palpites SET payment_status = 'paid' WHERE pix_transaction_id = '6716';
