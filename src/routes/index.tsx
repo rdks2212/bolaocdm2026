@@ -135,7 +135,10 @@ function Index() {
     : "";
 
   return (
-    <main className="min-h-screen px-4 py-10 sm:py-16">
+    <main
+      className="min-h-screen px-4 py-10 sm:py-16"
+      style={{ ["--wc-bg-image" as never]: `url(${wcBg})` }}
+    >
       <Toaster position="top-center" />
       <div className="mx-auto max-w-xl">
         <header className="mb-8 text-center">
