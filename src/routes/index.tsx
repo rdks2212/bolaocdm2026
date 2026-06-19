@@ -261,8 +261,25 @@ function Index() {
           </>
         )}
 
-        <footer className="mt-8 text-center text-xs text-muted-foreground">
-          ⚽ Que vença o melhor palpiteiro
+        <footer className="mt-8 space-y-3 text-center text-xs text-muted-foreground">
+          <p>⚽ Que vença o melhor palpiteiro</p>
+          <div className="mx-auto max-w-md rounded-xl border border-gold/20 bg-card/60 px-4 py-3 backdrop-blur">
+            <p className="flex items-center justify-center gap-1.5 text-foreground">
+              <Instagram className="h-4 w-4 text-gold" />
+              Página gerida por{" "}
+              <a
+                href="https://instagram.com/rodadasgratis.br"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-gold hover:underline"
+              >
+                @rodadasgratis.br
+              </a>
+            </p>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Quaisquer dúvidas, entre em contato pelo número da biografia.
+            </p>
+          </div>
         </footer>
       </div>
     </main>
