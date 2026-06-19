@@ -15,9 +15,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Bolão da Copa do Mundo 2026" },
-      { name: "description", content: "Entre no bolão do próximo jogo do Brasil. Faça seu palpite por R$ 20." },
+      { name: "description", content: "Entre no bolão do próximo jogo do Brasil. Faça seu palpite por R$ 1." },
       { property: "og:title", content: "Bolão da Copa do Mundo 2026" },
-      { property: "og:description", content: "Entre no bolão do próximo jogo do Brasil. Faça seu palpite por R$ 20." },
+      { property: "og:description", content: "Entre no bolão do próximo jogo do Brasil. Faça seu palpite por R$ 1." },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -345,7 +345,7 @@ function Index() {
                   <div className="flex items-center justify-between rounded-xl border border-gold/40 bg-gold/10 px-4 py-3">
                     <div>
                       <p className="text-xs uppercase tracking-wider text-gold">Valor do bolão</p>
-                      <p className="font-display text-3xl text-foreground">R$ 20,00</p>
+                      <p className="font-display text-3xl text-foreground">R$ 1,00</p>
                     </div>
                     <Trophy className="h-8 w-8 text-gold" />
                   </div>
@@ -406,7 +406,7 @@ function PixScreen({ pix, onReset }: { pix: PixData; onReset: () => void }) {
         <div className="mx-auto mb-2 inline-flex h-12 w-12 items-center justify-center rounded-full bg-gold/20 text-gold">
           <QrCode className="h-6 w-6" />
         </div>
-        <h2 className="font-display text-3xl">Pague R$ 20,00 via Pix</h2>
+        <h2 className="font-display text-3xl">Pague R$ 1,00 via Pix</h2>
         <p className="mt-1 text-xs text-muted-foreground">Escaneie o QR Code ou copie o código abaixo</p>
       </div>
 
