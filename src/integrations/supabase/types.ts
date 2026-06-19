@@ -108,6 +108,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_participantes_count: { Args: never; Returns: number }
       get_payment_status: { Args: { _tx: string }; Returns: string }
     }
     Enums: {
