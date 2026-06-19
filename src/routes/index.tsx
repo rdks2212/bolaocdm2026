@@ -36,7 +36,8 @@ type Jogo = {
   bandeira: string | null;
 };
 
-const VALOR_CENTS = 2000;
+const VALOR_CENTS = 100;
+const VALOR_LABEL = "R$ 1,00";
 
 const schema = z.object({
   nome: z.string().trim().min(2, "Informe seu nome completo").max(100),
