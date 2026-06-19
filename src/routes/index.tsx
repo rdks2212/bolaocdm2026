@@ -134,11 +134,12 @@ function Index() {
     ? new Date(jogo.data_hora).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
     : "";
 
+  useEffect(() => {
+    document.documentElement.style.setProperty("--wc-bg-image", `url(${wcBg})`);
+  }, []);
+
   return (
-    <main
-      className="min-h-screen px-4 py-10 sm:py-16"
-      style={{ ["--wc-bg-image" as never]: `url(${wcBg})` }}
-    >
+    <main className="min-h-screen px-4 py-10 sm:py-16">
       <Toaster position="top-center" />
       <div className="mx-auto max-w-xl">
         <header className="mb-8 text-center">
