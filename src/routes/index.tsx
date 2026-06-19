@@ -204,6 +204,8 @@ function Index() {
   return (
     <main className="min-h-screen px-4 py-10 sm:py-16">
       <Toaster position="top-center" />
+      <Confetti />
+
       <div className="mx-auto max-w-xl">
         <header className="mb-8 text-center">
           <div className="mx-auto mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-gold text-gold-foreground shadow-lg shadow-gold/30">
