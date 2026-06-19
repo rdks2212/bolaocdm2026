@@ -14,35 +14,82 @@ export type Database = {
   }
   public: {
     Tables: {
+      jogos: {
+        Row: {
+          adversario: string
+          ativo: boolean
+          bandeira: string | null
+          created_at: string
+          data_hora: string
+          fase: string
+          id: string
+        }
+        Insert: {
+          adversario: string
+          ativo?: boolean
+          bandeira?: string | null
+          created_at?: string
+          data_hora: string
+          fase?: string
+          id?: string
+        }
+        Update: {
+          adversario?: string
+          ativo?: boolean
+          bandeira?: string | null
+          created_at?: string
+          data_hora?: string
+          fase?: string
+          id?: string
+        }
+        Relationships: []
+      }
       palpites: {
         Row: {
           created_at: string
           id: string
+          jogo_id: string | null
           nome: string
           palpite: string
           payment_status: string
+          placar_adversario: number | null
+          placar_brasil: number | null
           telefone: string
           valor: number
         }
         Insert: {
           created_at?: string
           id?: string
+          jogo_id?: string | null
           nome: string
           palpite: string
           payment_status?: string
+          placar_adversario?: number | null
+          placar_brasil?: number | null
           telefone: string
           valor?: number
         }
         Update: {
           created_at?: string
           id?: string
+          jogo_id?: string | null
           nome?: string
           palpite?: string
           payment_status?: string
+          placar_adversario?: number | null
+          placar_brasil?: number | null
           telefone?: string
           valor?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "palpites_jogo_id_fkey"
+            columns: ["jogo_id"]
+            isOneToOne: false
+            referencedRelation: "jogos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
