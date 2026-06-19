@@ -36,8 +36,8 @@ type Jogo = {
   bandeira: string | null;
 };
 
-const VALOR_CENTS = 100;
-const VALOR_LABEL = "R$ 1,00";
+const VALOR_CENTS = 500;
+const VALOR_LABEL = "R$ 5,00";
 
 const schema = z.object({
   nome: z.string().trim().min(2, "Informe seu nome completo").max(100),
@@ -204,7 +204,7 @@ function Index() {
   return (
     <main className="min-h-screen px-4 py-10 sm:py-16">
       <Toaster position="top-center" />
-      <Confetti />
+      
 
       <div className="mx-auto max-w-xl">
         <header className="mb-8 text-center">
@@ -347,7 +347,7 @@ function Index() {
                   <div className="flex items-center justify-between rounded-xl border border-gold/40 bg-gold/10 px-4 py-3">
                     <div>
                       <p className="text-xs uppercase tracking-wider text-gold">Valor do bolão</p>
-                      <p className="font-display text-3xl text-foreground">R$ 1,00</p>
+                      <p className="font-display text-3xl text-foreground">R$ 5,00</p>
                     </div>
                     <Trophy className="h-8 w-8 text-gold" />
                   </div>
@@ -408,7 +408,7 @@ function PixScreen({ pix, onReset }: { pix: PixData; onReset: () => void }) {
         <div className="mx-auto mb-2 inline-flex h-12 w-12 items-center justify-center rounded-full bg-gold/20 text-gold">
           <QrCode className="h-6 w-6" />
         </div>
-        <h2 className="font-display text-3xl">Pague R$ 1,00 via Pix</h2>
+        <h2 className="font-display text-3xl">Pague R$ 5,00 via Pix</h2>
         <p className="mt-1 text-xs text-muted-foreground">Escaneie o QR Code ou copie o código abaixo</p>
       </div>
 
