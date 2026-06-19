@@ -216,6 +216,40 @@ function Index() {
           </p>
         </header>
 
+        {/* Participantes + Regras */}
+        <div className="mb-6 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 rounded-full border border-gold/30 bg-card/70 px-4 py-2 backdrop-blur">
+            <Users className="h-4 w-4 text-gold" />
+            <span className="text-sm">
+              <span className="font-display text-lg text-gold">{participantes ?? "—"}</span>
+              <span className="ml-1.5 text-xs text-muted-foreground">no bolão</span>
+            </span>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <button className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/70 px-4 py-2 text-xs font-semibold text-foreground backdrop-blur transition hover:border-gold/50 hover:text-gold">
+                <Info className="h-3.5 w-3.5" /> Regras do bolão
+              </button>
+            </DialogTrigger>
+            <DialogContent className="border-gold/30 bg-card">
+              <DialogHeader>
+                <DialogTitle className="font-display text-2xl text-gold">Regras do bolão</DialogTitle>
+              </DialogHeader>
+              <ol className="space-y-4 text-sm text-foreground">
+                <li className="flex gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold font-display text-gold-foreground">1</span>
+                  <p>Caso haja mais de um ganhador, o valor será dividido igualmente entre as partes.</p>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold font-display text-gold-foreground">2</span>
+                  <p>Em caso de acerto do bolão, as taxas do gateway de pagamento serão deduzidas do lucro.</p>
+                </li>
+              </ol>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+
         {isLoading ? (
           <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-gold" /></div>
         ) : !jogo ? (
