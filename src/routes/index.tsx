@@ -393,9 +393,6 @@ function Index() {
                 @rodadasgratis.br
               </a>
             </p>
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              Quaisquer dúvidas, entre em contato pelo número da biografia.
-            </p>
           </div>
         </footer>
       </div>
