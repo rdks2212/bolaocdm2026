@@ -46,36 +46,48 @@ export type Database = {
       }
       palpites: {
         Row: {
+          cpf: string | null
           created_at: string
           id: string
           jogo_id: string | null
           nome: string
           palpite: string
           payment_status: string
+          pix_expires_at: string | null
+          pix_payment_code: string | null
+          pix_transaction_id: string | null
           placar_adversario: number | null
           placar_brasil: number | null
           telefone: string
           valor: number
         }
         Insert: {
+          cpf?: string | null
           created_at?: string
           id?: string
           jogo_id?: string | null
           nome: string
           palpite: string
           payment_status?: string
+          pix_expires_at?: string | null
+          pix_payment_code?: string | null
+          pix_transaction_id?: string | null
           placar_adversario?: number | null
           placar_brasil?: number | null
           telefone: string
           valor?: number
         }
         Update: {
+          cpf?: string | null
           created_at?: string
           id?: string
           jogo_id?: string | null
           nome?: string
           palpite?: string
           payment_status?: string
+          pix_expires_at?: string | null
+          pix_payment_code?: string | null
+          pix_transaction_id?: string | null
           placar_adversario?: number | null
           placar_brasil?: number | null
           telefone?: string
