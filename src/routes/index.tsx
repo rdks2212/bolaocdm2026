@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { Trophy, User, Phone, Check, Calendar, Clock, Loader2, Instagram, Copy, QrCode, CreditCard } from "lucide-react";
+import { Trophy, User, Phone, Check, Calendar, Clock, Loader2, Instagram, Copy, QrCode, CreditCard, Users, Info } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
@@ -14,9 +15,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Bolão da Copa do Mundo 2026" },
-      { name: "description", content: "Entre no bolão do próximo jogo do Brasil. Faça seu palpite por R$ 20." },
+      { name: "description", content: "Entre no bolão do próximo jogo do Brasil. Faça seu palpite por R$ 1." },
       { property: "og:title", content: "Bolão da Copa do Mundo 2026" },
-      { property: "og:description", content: "Entre no bolão do próximo jogo do Brasil. Faça seu palpite por R$ 20." },
+      { property: "og:description", content: "Entre no bolão do próximo jogo do Brasil. Faça seu palpite por R$ 1." },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -35,7 +36,8 @@ type Jogo = {
   bandeira: string | null;
 };
 
-const VALOR_CENTS = 2000;
+const VALOR_CENTS = 100;
+const VALOR_LABEL = "R$ 1,00";
 
 const schema = z.object({
   nome: z.string().trim().min(2, "Informe seu nome completo").max(100),
@@ -101,6 +103,14 @@ type PixData = { palpiteId?: string; paymentCode: string; transactionId: string;
 
 function Index() {
   const { data: jogo, isLoading } = useQuery({ queryKey: ["proximo-jogo"], queryFn: fetchProximoJogo });
+  const { data: participantes } = useQuery({
+    queryKey: ["participantes-count"],
+    queryFn: async () => {
+      const { data } = await supabase.rpc("get_participantes_count");
+      return (data as number) ?? 0;
+    },
+    refetchInterval: 15000,
+  });
   const criarPix = useServerFn(criarCobrancaPix);
 
   const [nome, setNome] = useState("");
@@ -206,6 +216,40 @@ function Index() {
           </p>
         </header>
 
+        {/* Participantes + Regras */}
+        <div className="mb-6 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 rounded-full border border-gold/30 bg-card/70 px-4 py-2 backdrop-blur">
+            <Users className="h-4 w-4 text-gold" />
+            <span className="text-sm">
+              <span className="font-display text-lg text-gold">{participantes ?? "—"}</span>
+              <span className="ml-1.5 text-xs text-muted-foreground">no bolão</span>
+            </span>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <button className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/70 px-4 py-2 text-xs font-semibold text-foreground backdrop-blur transition hover:border-gold/50 hover:text-gold">
+                <Info className="h-3.5 w-3.5" /> Regras do bolão
+              </button>
+            </DialogTrigger>
+            <DialogContent className="border-gold/30 bg-card">
+              <DialogHeader>
+                <DialogTitle className="font-display text-2xl text-gold">Regras do bolão</DialogTitle>
+              </DialogHeader>
+              <ol className="space-y-4 text-sm text-foreground">
+                <li className="flex gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold font-display text-gold-foreground">1</span>
+                  <p>Caso haja mais de um ganhador, o valor será dividido igualmente entre as partes.</p>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold font-display text-gold-foreground">2</span>
+                  <p>Em caso de acerto do bolão, as taxas do gateway de pagamento serão deduzidas do lucro.</p>
+                </li>
+              </ol>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+
         {isLoading ? (
           <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-gold" /></div>
         ) : !jogo ? (
@@ -301,7 +345,7 @@ function Index() {
                   <div className="flex items-center justify-between rounded-xl border border-gold/40 bg-gold/10 px-4 py-3">
                     <div>
                       <p className="text-xs uppercase tracking-wider text-gold">Valor do bolão</p>
-                      <p className="font-display text-3xl text-foreground">R$ 20,00</p>
+                      <p className="font-display text-3xl text-foreground">R$ 1,00</p>
                     </div>
                     <Trophy className="h-8 w-8 text-gold" />
                   </div>
@@ -362,7 +406,7 @@ function PixScreen({ pix, onReset }: { pix: PixData; onReset: () => void }) {
         <div className="mx-auto mb-2 inline-flex h-12 w-12 items-center justify-center rounded-full bg-gold/20 text-gold">
           <QrCode className="h-6 w-6" />
         </div>
-        <h2 className="font-display text-3xl">Pague R$ 20,00 via Pix</h2>
+        <h2 className="font-display text-3xl">Pague R$ 1,00 via Pix</h2>
         <p className="mt-1 text-xs text-muted-foreground">Escaneie o QR Code ou copie o código abaixo</p>
       </div>
 
