@@ -108,6 +108,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_palpites_publicos: {
+        Args: never
+        Returns: {
+          adversario: string
+          created_at: string
+          nome_mascarado: string
+          placar_adversario: number
+          placar_brasil: number
+        }[]
+      }
       get_participantes_count: { Args: never; Returns: number }
       get_payment_status: { Args: { _tx: string }; Returns: string }
     }

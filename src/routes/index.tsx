@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { Trophy, User, Phone, Check, Calendar, Clock, Loader2, Instagram, Copy, QrCode, CreditCard, Users, Info } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -219,14 +219,17 @@ function Index() {
         </header>
 
         {/* Participantes + Regras */}
-        <div className="mb-6 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 rounded-full border border-gold/30 bg-card/70 px-4 py-2 backdrop-blur">
+        <div className="mb-6 flex items-center justify-between gap-3 flex-wrap">
+          <Link
+            to="/transparencia"
+            className="flex items-center gap-2 rounded-full border border-gold/30 bg-card/70 px-4 py-2 backdrop-blur transition hover:border-gold/60"
+          >
             <Users className="h-4 w-4 text-gold" />
             <span className="text-sm">
               <span className="font-display text-lg text-gold">{participantes ?? "—"}</span>
-              <span className="ml-1.5 text-xs text-muted-foreground">no bolão</span>
+              <span className="ml-1.5 text-xs text-muted-foreground">no bolão · ver todos</span>
             </span>
-          </div>
+          </Link>
           <Dialog>
             <DialogTrigger asChild>
               <button className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/70 px-4 py-2 text-xs font-semibold text-foreground backdrop-blur transition hover:border-gold/50 hover:text-gold">
