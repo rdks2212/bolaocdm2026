@@ -246,6 +246,10 @@ function Index() {
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold font-display text-gold-foreground">2</span>
                   <p>Em caso de acerto do bolão, as taxas do gateway de pagamento serão deduzidas do lucro.</p>
                 </li>
+                <li className="flex gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold font-display text-gold-foreground">3</span>
+                  <p>O número de telefone informado deve conter WhatsApp ativo para que possamos entrar em contato. Caso contrário, não há estorno.</p>
+                </li>
               </ol>
             </DialogContent>
           </Dialog>
