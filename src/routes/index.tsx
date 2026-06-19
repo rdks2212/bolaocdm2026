@@ -103,6 +103,14 @@ type PixData = { palpiteId?: string; paymentCode: string; transactionId: string;
 
 function Index() {
   const { data: jogo, isLoading } = useQuery({ queryKey: ["proximo-jogo"], queryFn: fetchProximoJogo });
+  const { data: participantes } = useQuery({
+    queryKey: ["participantes-count"],
+    queryFn: async () => {
+      const { data } = await supabase.rpc("get_participantes_count");
+      return (data as number) ?? 0;
+    },
+    refetchInterval: 15000,
+  });
   const criarPix = useServerFn(criarCobrancaPix);
 
   const [nome, setNome] = useState("");
