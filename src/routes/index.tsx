@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { Trophy, User, Phone, Check, Calendar, Clock, Loader2, Instagram, Copy, QrCode, CreditCard } from "lucide-react";
+import { Trophy, User, Phone, Check, Calendar, Clock, Loader2, Instagram, Copy, QrCode, CreditCard, Users, Info } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
