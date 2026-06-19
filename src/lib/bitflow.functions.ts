@@ -63,7 +63,7 @@ export const criarCobrancaPix = createServerFn({ method: "POST" })
     const palpiteId = inserted.id;
 
     const { accessToken, clientId } = await getAccessToken();
-    const origin = process.env.PUBLIC_SITE_URL || "https://project--maoqkusewprvbyupfuzm.lovable.app";
+    const origin = process.env.PUBLIC_SITE_URL || "https://project--0a20947b-4eeb-49fb-b6ae-46231e255a60.lovable.app";
     const urlCallBack = `${origin}/api/public/bitflow-webhook`;
 
     const body = {
