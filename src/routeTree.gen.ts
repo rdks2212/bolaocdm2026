@@ -10,33 +10,43 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicBitflowWebhookRouteImport } from './routes/api/public/bitflow-webhook'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicBitflowWebhookRoute = ApiPublicBitflowWebhookRouteImport.update({
+  id: '/api/public/bitflow-webhook',
+  path: '/api/public/bitflow-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/public/bitflow-webhook': typeof ApiPublicBitflowWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/public/bitflow-webhook': typeof ApiPublicBitflowWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/public/bitflow-webhook': typeof ApiPublicBitflowWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/api/public/bitflow-webhook'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/api/public/bitflow-webhook'
+  id: '__root__' | '/' | '/api/public/bitflow-webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiPublicBitflowWebhookRoute: typeof ApiPublicBitflowWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +58,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/bitflow-webhook': {
+      id: '/api/public/bitflow-webhook'
+      path: '/api/public/bitflow-webhook'
+      fullPath: '/api/public/bitflow-webhook'
+      preLoaderRoute: typeof ApiPublicBitflowWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiPublicBitflowWebhookRoute: ApiPublicBitflowWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
