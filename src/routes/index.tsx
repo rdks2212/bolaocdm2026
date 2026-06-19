@@ -146,33 +146,16 @@ function Index() {
     setLoading(true);
     const palpiteTexto = `Brasil ${result.data.placar_brasil} x ${result.data.placar_adversario} ${jogo.adversario}`;
 
-    const { data: inserted, error } = await supabase
-      .from("palpites")
-      .insert({
-        nome: result.data.nome,
-        telefone: result.data.telefone,
-        palpite: palpiteTexto,
-        placar_brasil: result.data.placar_brasil,
-        placar_adversario: result.data.placar_adversario,
-        jogo_id: jogo.id,
-        valor: 20,
-      })
-      .select("id")
-      .single();
-
-    if (error || !inserted) {
-      setLoading(false);
-      toast.error("Não foi possível registrar o palpite.");
-      return;
-    }
-
     try {
       const pixData = await criarPix({
         data: {
-          palpiteId: inserted.id,
           nome: result.data.nome,
           cpf: cpfDigits,
           telefone: result.data.telefone,
+          jogoId: jogo.id,
+          placarBrasil: result.data.placar_brasil,
+          placarAdversario: result.data.placar_adversario,
+          palpiteTexto,
           descricao: `Bolão Brasil x ${jogo.adversario}`,
           amountCents: VALOR_CENTS,
         },
