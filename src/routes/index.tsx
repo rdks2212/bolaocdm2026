@@ -97,7 +97,7 @@ function Countdown({ target }: { target: string }) {
   );
 }
 
-type PixData = { paymentCode: string; transactionId: string; expiresAt: string | null };
+type PixData = { palpiteId?: string; paymentCode: string; transactionId: string; expiresAt: string | null };
 
 function Index() {
   const { data: jogo, isLoading } = useQuery({ queryKey: ["proximo-jogo"], queryFn: fetchProximoJogo });
