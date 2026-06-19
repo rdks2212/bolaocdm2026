@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { Trophy, User, Phone, Check, Calendar, Clock, Loader2, Instagram } from "lucide-react";
+import { Trophy, User, Phone, Check, Calendar, Clock, Loader2, Instagram, Copy, QrCode, CreditCard } from "lucide-react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { criarCobrancaPix } from "@/lib/bitflow.functions";
 import wcBg from "@/assets/wc-bg.jpg";
 
 export const Route = createFileRoute("/")({
@@ -33,9 +35,12 @@ type Jogo = {
   bandeira: string | null;
 };
 
+const VALOR_CENTS = 2000;
+
 const schema = z.object({
   nome: z.string().trim().min(2, "Informe seu nome completo").max(100),
   telefone: z.string().trim().min(10, "Telefone inválido").max(20),
+  cpf: z.string().regex(/^\d{11}$/, "CPF deve ter 11 dígitos"),
   placar_brasil: z.number().int().min(0).max(20),
   placar_adversario: z.number().int().min(0).max(20),
 });
@@ -46,6 +51,14 @@ function formatPhone(v: string) {
   if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
   if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
+
+function formatCpf(v: string) {
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 3) return d;
+  if (d.length <= 6) return `${d.slice(0, 3)}.${d.slice(3)}`;
+  if (d.length <= 9) return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`;
+  return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
 }
 
 async function fetchProximoJogo(): Promise<Jogo | null> {
@@ -84,22 +97,45 @@ function Countdown({ target }: { target: string }) {
   );
 }
 
+type PixData = { paymentCode: string; transactionId: string; expiresAt: string | null };
+
 function Index() {
   const { data: jogo, isLoading } = useQuery({ queryKey: ["proximo-jogo"], queryFn: fetchProximoJogo });
+  const criarPix = useServerFn(criarCobrancaPix);
 
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [cpf, setCpf] = useState("");
   const [placarBrasil, setPlacarBrasil] = useState("");
   const [placarAdv, setPlacarAdv] = useState("");
-  const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pix, setPix] = useState<PixData | null>(null);
+  const [paid, setPaid] = useState(false);
+
+  // Poll payment status every 4s while awaiting confirmation
+  useEffect(() => {
+    if (!pix || paid) return;
+    let stopped = false;
+    const tick = async () => {
+      const { data } = await supabase.rpc("get_payment_status", { _tx: pix.transactionId });
+      if (!stopped && data === "paid") {
+        setPaid(true);
+        toast.success("Pagamento confirmado! Boa sorte 🏆");
+      }
+    };
+    tick();
+    const id = setInterval(tick, 4000);
+    return () => { stopped = true; clearInterval(id); };
+  }, [pix, paid]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!jogo) return;
+    const cpfDigits = cpf.replace(/\D/g, "");
     const result = schema.safeParse({
       nome,
       telefone,
+      cpf: cpfDigits,
       placar_brasil: parseInt(placarBrasil, 10),
       placar_adversario: parseInt(placarAdv, 10),
     });
@@ -109,22 +145,56 @@ function Index() {
     }
     setLoading(true);
     const palpiteTexto = `Brasil ${result.data.placar_brasil} x ${result.data.placar_adversario} ${jogo.adversario}`;
-    const { error } = await supabase.from("palpites").insert({
-      nome: result.data.nome,
-      telefone: result.data.telefone,
-      palpite: palpiteTexto,
-      placar_brasil: result.data.placar_brasil,
-      placar_adversario: result.data.placar_adversario,
-      jogo_id: jogo.id,
-      valor: 20,
-    });
-    setLoading(false);
-    if (error) {
-      toast.error("Não foi possível registrar. Tente novamente.");
+
+    const { data: inserted, error } = await supabase
+      .from("palpites")
+      .insert({
+        nome: result.data.nome,
+        telefone: result.data.telefone,
+        palpite: palpiteTexto,
+        placar_brasil: result.data.placar_brasil,
+        placar_adversario: result.data.placar_adversario,
+        jogo_id: jogo.id,
+        valor: 20,
+      })
+      .select("id")
+      .single();
+
+    if (error || !inserted) {
+      setLoading(false);
+      toast.error("Não foi possível registrar o palpite.");
       return;
     }
-    setSent(true);
-    toast.success("Palpite registrado! Boa sorte 🏆");
+
+    try {
+      const pixData = await criarPix({
+        data: {
+          palpiteId: inserted.id,
+          nome: result.data.nome,
+          cpf: cpfDigits,
+          telefone: result.data.telefone,
+          descricao: `Bolão Brasil x ${jogo.adversario}`,
+          amountCents: VALOR_CENTS,
+        },
+      });
+      setPix(pixData);
+      toast.success("Pix gerado! Pague para confirmar seu palpite.");
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Falha ao gerar o Pix. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function resetAll() {
+    setPix(null);
+    setPaid(false);
+    setNome("");
+    setTelefone("");
+    setCpf("");
+    setPlacarBrasil("");
+    setPlacarAdv("");
   }
 
   const dataFmt = jogo
@@ -185,24 +255,23 @@ function Index() {
               <Countdown target={jogo.data_hora} />
             </div>
 
-            {/* Formulário do bolão */}
+            {/* Formulário / Pix / Confirmação */}
             <div className="rounded-2xl border border-border bg-card/80 backdrop-blur p-6 sm:p-8 shadow-2xl">
-              {sent ? (
+              {paid ? (
                 <div className="py-10 text-center">
                   <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground">
                     <Check className="h-7 w-7" />
                   </div>
                   <h2 className="text-3xl font-display">Você está no bolão!</h2>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Entraremos em contato pelo telefone informado para confirmar o pagamento de R$ 20.
+                    Pagamento confirmado. Boa sorte com seu palpite 🏆
                   </p>
-                  <button
-                    onClick={() => { setSent(false); setNome(""); setTelefone(""); setPlacarBrasil(""); setPlacarAdv(""); }}
-                    className="mt-6 text-sm font-semibold text-gold hover:underline"
-                  >
+                  <button onClick={resetAll} className="mt-6 text-sm font-semibold text-gold hover:underline">
                     Cadastrar outro palpite
                   </button>
                 </div>
+              ) : pix ? (
+                <PixScreen pix={pix} onReset={resetAll} />
               ) : (
                 <form onSubmit={onSubmit} className="space-y-5">
                   <Field icon={<User className="h-4 w-4" />} label="Nome completo">
@@ -212,6 +281,16 @@ function Index() {
                       placeholder="Seu nome"
                       className="w-full bg-transparent outline-none placeholder:text-muted-foreground/60"
                       maxLength={100}
+                    />
+                  </Field>
+
+                  <Field icon={<CreditCard className="h-4 w-4" />} label="CPF (necessário para o Pix)">
+                    <input
+                      value={cpf}
+                      onChange={(e) => setCpf(formatCpf(e.target.value))}
+                      placeholder="000.000.000-00"
+                      inputMode="numeric"
+                      className="w-full bg-transparent outline-none placeholder:text-muted-foreground/60"
                     />
                   </Field>
 
@@ -249,11 +328,13 @@ function Index() {
                     disabled={loading}
                     className="w-full rounded-xl bg-gold py-4 font-display text-xl tracking-wider text-gold-foreground transition hover:brightness-110 active:scale-[0.99] shadow-lg shadow-gold/20 disabled:opacity-60"
                   >
-                    {loading ? "Enviando..." : "Entrar no bolão"}
+                    {loading ? (
+                      <span className="inline-flex items-center gap-2"><Loader2 className="h-5 w-5 animate-spin" /> Gerando Pix...</span>
+                    ) : "Gerar Pix e entrar no bolão"}
                   </button>
 
                   <p className="text-center text-xs text-muted-foreground">
-                    Ao entrar, você concorda em pagar R$ 20 para participar.
+                    Pagamento via Pix processado pela Bitflow Pay.
                   </p>
                 </form>
               )}
@@ -283,6 +364,49 @@ function Index() {
         </footer>
       </div>
     </main>
+  );
+}
+
+function PixScreen({ pix, onReset }: { pix: PixData; onReset: () => void }) {
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(pix.paymentCode)}`;
+  function copy() {
+    navigator.clipboard.writeText(pix.paymentCode);
+    toast.success("Código Pix copiado!");
+  }
+  return (
+    <div className="space-y-5 text-center">
+      <div>
+        <div className="mx-auto mb-2 inline-flex h-12 w-12 items-center justify-center rounded-full bg-gold/20 text-gold">
+          <QrCode className="h-6 w-6" />
+        </div>
+        <h2 className="font-display text-3xl">Pague R$ 20,00 via Pix</h2>
+        <p className="mt-1 text-xs text-muted-foreground">Escaneie o QR Code ou copie o código abaixo</p>
+      </div>
+
+      <div className="mx-auto w-fit rounded-2xl bg-white p-3 shadow-lg">
+        <img src={qrUrl} alt="QR Code Pix" width={260} height={260} />
+      </div>
+
+      <div className="rounded-xl border border-border bg-input/60 p-3 text-left">
+        <p className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">Pix Copia e Cola</p>
+        <p className="break-all font-mono text-xs text-foreground/90">{pix.paymentCode}</p>
+      </div>
+
+      <button
+        onClick={copy}
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gold py-3 font-semibold text-gold-foreground transition hover:brightness-110"
+      >
+        <Copy className="h-4 w-4" /> Copiar código Pix
+      </button>
+
+      <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Aguardando confirmação do pagamento...
+      </div>
+
+      <button onClick={onReset} className="text-xs text-muted-foreground hover:text-foreground underline">
+        Cancelar e voltar
+      </button>
+    </div>
   );
 }
 
