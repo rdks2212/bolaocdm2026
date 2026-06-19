@@ -4,6 +4,7 @@ import { Trophy, User, Phone, FileText, Check } from "lucide-react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -41,12 +42,25 @@ function Index() {
   const [telefone, setTelefone] = useState("");
   const [palpite, setPalpite] = useState("");
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
     const result = schema.safeParse({ nome, telefone, palpite });
     if (!result.success) {
       toast.error(result.error.issues[0].message);
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.from("palpites").insert({
+      nome: result.data.nome,
+      telefone: result.data.telefone,
+      palpite: result.data.palpite,
+      valor: 20,
+    });
+    setLoading(false);
+    if (error) {
+      toast.error("Não foi possível registrar. Tente novamente.");
       return;
     }
     setSent(true);
@@ -130,9 +144,10 @@ function Index() {
 
               <button
                 type="submit"
-                className="w-full rounded-xl bg-gold py-4 font-display text-xl tracking-wider text-gold-foreground transition hover:brightness-110 active:scale-[0.99] shadow-lg shadow-gold/20"
+                disabled={loading}
+                className="w-full rounded-xl bg-gold py-4 font-display text-xl tracking-wider text-gold-foreground transition hover:brightness-110 active:scale-[0.99] shadow-lg shadow-gold/20 disabled:opacity-60"
               >
-                Entrar no bolão
+                {loading ? "Enviando..." : "Entrar no bolão"}
               </button>
 
               <p className="text-center text-xs text-muted-foreground">
