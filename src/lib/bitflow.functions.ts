@@ -26,11 +26,14 @@ async function getAccessToken() {
 }
 
 const inputSchema = z.object({
-  palpiteId: z.string().uuid(),
   nome: z.string().min(2).max(100),
   cpf: z.string().regex(/^\d{11}$/, "CPF deve conter 11 dígitos"),
   telefone: z.string().min(8).max(20),
   email: z.string().email().optional(),
+  jogoId: z.string().uuid(),
+  placarBrasil: z.number().int().min(0).max(20),
+  placarAdversario: z.number().int().min(0).max(20),
+  palpiteTexto: z.string().min(3).max(500),
   descricao: z.string().max(200),
   amountCents: z.number().int().positive(),
 });
@@ -38,8 +41,28 @@ const inputSchema = z.object({
 export const criarCobrancaPix = createServerFn({ method: "POST" })
   .inputValidator((d: z.infer<typeof inputSchema>) => inputSchema.parse(d))
   .handler(async ({ data }) => {
-    const { accessToken, clientId } = await getAccessToken();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    const { data: inserted, error: insErr } = await supabaseAdmin
+      .from("palpites")
+      .insert({
+        nome: data.nome,
+        telefone: data.telefone,
+        palpite: data.palpiteTexto,
+        placar_brasil: data.placarBrasil,
+        placar_adversario: data.placarAdversario,
+        jogo_id: data.jogoId,
+        valor: data.amountCents / 100,
+        cpf: data.cpf,
+      })
+      .select("id")
+      .single();
+    if (insErr || !inserted) {
+      throw new Error(`Falha ao registrar palpite: ${insErr?.message ?? "unknown"}`);
+    }
+    const palpiteId = inserted.id;
+
+    const { accessToken, clientId } = await getAccessToken();
     const origin = process.env.PUBLIC_SITE_URL || "https://project--maoqkusewprvbyupfuzm.lovable.app";
     const urlCallBack = `${origin}/api/public/bitflow-webhook`;
 
@@ -51,7 +74,7 @@ export const criarCobrancaPix = createServerFn({ method: "POST" })
         email: data.email || `${data.cpf}@bolao.local`,
         cpf: data.cpf,
         phone: data.telefone.replace(/\D/g, ""),
-        externaRef: data.palpiteId,
+        externaRef: palpiteId,
       },
       items: [
         { title: data.descricao, quantity: 1, unitPriceCents: data.amountCents, tangible: false },
@@ -68,33 +91,28 @@ export const criarCobrancaPix = createServerFn({ method: "POST" })
       },
       body: JSON.stringify(body),
     });
-
     if (!res.ok) {
       const txt = await res.text();
       throw new Error(`Bitflow cashin failed (${res.status}): ${txt.slice(0, 500)}`);
     }
-
     const charge = (await res.json()) as {
       id: number | string;
       paymentCode: string;
       status: string;
-      providerTransactionId?: string;
       expiresAt?: string;
     };
 
-    // Persist Pix info on the palpite (admin write — bypasses RLS UPDATE block)
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin
       .from("palpites")
       .update({
         pix_payment_code: charge.paymentCode,
         pix_transaction_id: String(charge.id),
         pix_expires_at: charge.expiresAt ?? null,
-        cpf: data.cpf,
       })
-      .eq("id", data.palpiteId);
+      .eq("id", palpiteId);
 
     return {
+      palpiteId,
       paymentCode: charge.paymentCode,
       transactionId: String(charge.id),
       expiresAt: charge.expiresAt ?? null,
