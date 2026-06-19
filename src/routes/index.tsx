@@ -112,26 +112,21 @@ function Index() {
   const [pix, setPix] = useState<PixData | null>(null);
   const [paid, setPaid] = useState(false);
 
-  // Realtime listener for payment confirmation
+  // Poll payment status every 4s while awaiting confirmation
   useEffect(() => {
-    if (!pix) return;
-    const channel = supabase
-      .channel(`palpite-${pix.transactionId}`)
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "palpites", filter: `pix_transaction_id=eq.${pix.transactionId}` },
-        (payload: any) => {
-          if (payload.new?.payment_status === "paid") {
-            setPaid(true);
-            toast.success("Pagamento confirmado! Boa sorte 🏆");
-          }
-        }
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
+    if (!pix || paid) return;
+    let stopped = false;
+    const tick = async () => {
+      const { data } = await supabase.rpc("get_payment_status", { _tx: pix.transactionId });
+      if (!stopped && data === "paid") {
+        setPaid(true);
+        toast.success("Pagamento confirmado! Boa sorte 🏆");
+      }
     };
-  }, [pix]);
+    tick();
+    const id = setInterval(tick, 4000);
+    return () => { stopped = true; clearInterval(id); };
+  }, [pix, paid]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
