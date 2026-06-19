@@ -468,3 +468,32 @@ function ScoreInput({ label, value, onChange }: { label: string; value: string; 
     </label>
   );
 }
+
+function Confetti() {
+  const colors = ["oklch(0.85 0.18 85)", "oklch(0.55 0.18 150)", "oklch(0.75 0.16 25)", "oklch(0.95 0.02 90)"];
+  const pieces = Array.from({ length: 28 });
+  return (
+    <div className="wc-particles" aria-hidden="true">
+      {pieces.map((_, i) => {
+        const left = (i * 97) % 100;
+        const delay = (i * 0.7) % 14;
+        const duration = 9 + ((i * 1.3) % 10);
+        const color = colors[i % colors.length];
+        const size = 6 + ((i * 3) % 8);
+        return (
+          <span
+            key={i}
+            style={{
+              left: `${left}%`,
+              animationDelay: `${delay}s`,
+              animationDuration: `${duration}s`,
+              width: `${size}px`,
+              height: `${size + 4}px`,
+              ["--c" as never]: color,
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+}
