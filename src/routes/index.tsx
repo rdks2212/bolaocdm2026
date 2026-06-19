@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { Trophy, User, Phone, Check, Calendar, Clock, Loader2 } from "lucide-react";
+import { Trophy, User, Phone, Check, Calendar, Clock, Loader2, Instagram } from "lucide-react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import wcBg from "@/assets/wc-bg.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
