@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransparenciaRouteImport } from './routes/transparencia'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPublicBitflowWebhookRouteImport } from './routes/api/public/bitflow-webhook'
 
 const TransparenciaRoute = TransparenciaRouteImport.update({
   id: '/transparencia',
   path: '/transparencia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -31,30 +37,39 @@ const ApiPublicBitflowWebhookRoute = ApiPublicBitflowWebhookRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/transparencia': typeof TransparenciaRoute
   '/api/public/bitflow-webhook': typeof ApiPublicBitflowWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/transparencia': typeof TransparenciaRoute
   '/api/public/bitflow-webhook': typeof ApiPublicBitflowWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/transparencia': typeof TransparenciaRoute
   '/api/public/bitflow-webhook': typeof ApiPublicBitflowWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/transparencia' | '/api/public/bitflow-webhook'
+  fullPaths: '/' | '/admin' | '/transparencia' | '/api/public/bitflow-webhook'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/transparencia' | '/api/public/bitflow-webhook'
-  id: '__root__' | '/' | '/transparencia' | '/api/public/bitflow-webhook'
+  to: '/' | '/admin' | '/transparencia' | '/api/public/bitflow-webhook'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/transparencia'
+    | '/api/public/bitflow-webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   TransparenciaRoute: typeof TransparenciaRoute
   ApiPublicBitflowWebhookRoute: typeof ApiPublicBitflowWebhookRoute
 }
@@ -66,6 +81,13 @@ declare module '@tanstack/react-router' {
       path: '/transparencia'
       fullPath: '/transparencia'
       preLoaderRoute: typeof TransparenciaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -87,6 +109,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   TransparenciaRoute: TransparenciaRoute,
   ApiPublicBitflowWebhookRoute: ApiPublicBitflowWebhookRoute,
 }
