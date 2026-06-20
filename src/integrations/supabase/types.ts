@@ -108,6 +108,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_listar_palpites: {
+        Args: { _senha: string }
+        Returns: {
+          adversario: string
+          cpf: string
+          created_at: string
+          data_jogo: string
+          id: string
+          nome: string
+          payment_status: string
+          placar_adversario: number
+          placar_brasil: number
+          telefone: string
+          valor: number
+        }[]
+      }
       get_palpites_publicos: {
         Args: never
         Returns: {
