@@ -287,7 +287,7 @@ function AdminPage() {
                       {r.telefone}
                     </a>
                   </td>
-                  <td className="px-3 py-2 font-mono text-xs">{maskCpf(r.cpf)}</td>
+                  <td className="px-3 py-2 font-mono text-xs">{formatCpf(r.cpf)}</td>
                   <td className="px-3 py-2">Brasil x {r.adversario ?? "?"}</td>
                   <td className="px-3 py-2 font-display">
                     {r.placar_brasil ?? "?"} × {r.placar_adversario ?? "?"}
