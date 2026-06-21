@@ -1,14 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, Lock, MessageCircle, Download, LogOut, Shield } from "lucide-react";
+import { Loader2, Lock, Mail, MessageCircle, Download, LogOut, Shield, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
-import { listarPalpitesAdmin } from "@/lib/admin.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { listarPalpitesAdmin, bootstrapAdmin } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin · Bolão" }, { name: "robots", content: "noindex,nofollow" }] }),
   component: AdminPage,
+  ssr: false,
 });
 
 type Row = {
@@ -25,51 +27,98 @@ type Row = {
   created_at: string;
 };
 
-const ADMIN_USER = "adminrdgbr";
+function maskCpf(cpf: string | null) {
+  if (!cpf) return "—";
+  const d = cpf.replace(/\D/g, "");
+  if (d.length !== 11) return cpf;
+  return `${d.slice(0, 3)}.***.***-${d.slice(9, 11)}`;
+}
 
 function AdminPage() {
   const listar = useServerFn(listarPalpitesAdmin);
-  const [user, setUser] = useState("");
-  const [senha, setSenha] = useState("");
-  const [rows, setRows] = useState<Row[] | null>(null);
+  const bootstrap = useServerFn(bootstrapAdmin);
+
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [signedIn, setSignedIn] = useState(false);
+  const [needsBootstrap, setNeedsBootstrap] = useState(false);
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [rows, setRows] = useState<Row[] | null>(null);
   const [filter, setFilter] = useState<"all" | "paid" | "pending">("paid");
+
+  useEffect(() => {
+    (async () => {
+      const { data: existsData } = await supabase.rpc("admin_existe");
+      setNeedsBootstrap(!existsData);
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session) {
+        setSignedIn(true);
+        await loadRows();
+      }
+      setCheckingSession(false);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function loadRows() {
+    try {
+      const data = await listar();
+      setRows(data as Row[]);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Falha ao carregar dados");
+      await supabase.auth.signOut();
+      setSignedIn(false);
+      setRows(null);
+    }
+  }
 
   async function onLogin(e: FormEvent) {
     e.preventDefault();
-    if (user.trim() !== ADMIN_USER) {
-      toast.error("Usuário ou senha incorretos");
-      return;
-    }
     setLoading(true);
     try {
-      const data = await listar({ data: { senha } });
-      setRows(data as Row[]);
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      setSignedIn(true);
+      setPassword("");
+      await loadRows();
       toast.success("Bem-vindo!");
-    } catch {
-      toast.error("Usuário ou senha incorretos");
+    } catch (err: any) {
+      toast.error(err?.message ?? "E-mail ou senha incorretos");
     } finally {
       setLoading(false);
     }
+  }
+
+  async function onBootstrap(e: FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await bootstrap({ data: { email, password } });
+      toast.success("Conta admin criada! Faça login.");
+      setNeedsBootstrap(false);
+      setPassword("");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Falha ao criar conta admin");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function logout() {
+    await supabase.auth.signOut();
+    setSignedIn(false);
+    setRows(null);
+    setEmail("");
+    setPassword("");
   }
 
   async function refresh() {
     setLoading(true);
-    try {
-      const data = await listar({ data: { senha } });
-      setRows(data as Row[]);
-    } catch {
-      toast.error("Sessão expirada. Faça login novamente.");
-      setRows(null);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function logout() {
-    setRows(null);
-    setSenha("");
-    setUser("");
+    await loadRows();
+    setLoading(false);
   }
 
   function exportCsv() {
@@ -78,7 +127,7 @@ function AdminPage() {
     const lines = filtered.map((r) => [
       r.nome,
       r.telefone,
-      r.cpf ?? "",
+      maskCpf(r.cpf),
       r.adversario ?? "",
       `${r.placar_brasil ?? "?"}x${r.placar_adversario ?? "?"}`,
       r.payment_status,
@@ -110,25 +159,40 @@ function AdminPage() {
     return `https://wa.me/${full}`;
   }
 
-  if (!rows) {
+  if (checkingSession) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-gold" />
+      </main>
+    );
+  }
+
+  if (!signedIn) {
+    const isBootstrap = needsBootstrap;
     return (
       <main className="min-h-screen flex items-center justify-center px-4">
         <Toaster position="top-center" />
         <div className="w-full max-w-sm rounded-2xl border border-gold/30 bg-card/80 p-8 shadow-2xl">
           <div className="mb-6 text-center">
             <div className="mx-auto mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full bg-gold text-gold-foreground">
-              <Shield className="h-7 w-7" />
+              {isBootstrap ? <UserPlus className="h-7 w-7" /> : <Shield className="h-7 w-7" />}
             </div>
-            <h1 className="font-display text-3xl">Painel Admin</h1>
-            <p className="mt-1 text-xs text-muted-foreground">Acesso restrito</p>
+            <h1 className="font-display text-3xl">{isBootstrap ? "Criar conta admin" : "Painel Admin"}</h1>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {isBootstrap ? "Defina o primeiro administrador" : "Acesso restrito"}
+            </p>
           </div>
-          <form onSubmit={onLogin} className="space-y-4">
+          <form onSubmit={isBootstrap ? onBootstrap : onLogin} className="space-y-4">
             <label className="block">
-              <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Usuário</span>
+              <span className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <Mail className="h-3 w-3" /> E-mail
+              </span>
               <input
-                value={user}
-                onChange={(e) => setUser(e.target.value)}
-                autoComplete="username"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                required
                 className="w-full rounded-xl border border-border bg-input/60 px-4 py-3 outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
               />
             </label>
@@ -138,18 +202,23 @@ function AdminPage() {
               </span>
               <input
                 type="password"
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete={isBootstrap ? "new-password" : "current-password"}
+                required
+                minLength={isBootstrap ? 8 : undefined}
                 className="w-full rounded-xl border border-border bg-input/60 px-4 py-3 outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
               />
+              {isBootstrap && (
+                <span className="mt-1 block text-[10px] text-muted-foreground">Mínimo 8 caracteres</span>
+              )}
             </label>
             <button
               type="submit"
               disabled={loading}
               className="w-full rounded-xl bg-gold py-3 font-display text-lg tracking-wider text-gold-foreground transition hover:brightness-110 disabled:opacity-60"
             >
-              {loading ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : "Entrar"}
+              {loading ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : isBootstrap ? "Criar admin" : "Entrar"}
             </button>
           </form>
         </div>
@@ -164,7 +233,9 @@ function AdminPage() {
         <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="font-display text-4xl">Painel Admin</h1>
-            <p className="text-sm text-muted-foreground">{rows.length} registro(s) · {totalPaid} pagos · R$ {totalReceita.toFixed(2).replace(".", ",")}</p>
+            <p className="text-sm text-muted-foreground">
+              {(rows ?? []).length} registro(s) · {totalPaid} pagos · R$ {totalReceita.toFixed(2).replace(".", ",")}
+            </p>
           </div>
           <div className="flex gap-2">
             <button onClick={refresh} disabled={loading} className="rounded-lg border border-border bg-card px-3 py-2 text-sm hover:border-gold/50">
@@ -216,7 +287,7 @@ function AdminPage() {
                       {r.telefone}
                     </a>
                   </td>
-                  <td className="px-3 py-2 font-mono text-xs">{r.cpf ?? "—"}</td>
+                  <td className="px-3 py-2 font-mono text-xs">{maskCpf(r.cpf)}</td>
                   <td className="px-3 py-2">Brasil x {r.adversario ?? "?"}</td>
                   <td className="px-3 py-2 font-display">
                     {r.placar_brasil ?? "?"} × {r.placar_adversario ?? "?"}
