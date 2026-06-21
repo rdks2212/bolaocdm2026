@@ -179,9 +179,15 @@ function AdminPage() {
             </div>
             <h1 className="font-display text-3xl">{isBootstrap ? "Criar conta admin" : "Painel Admin"}</h1>
             <p className="mt-1 text-xs text-muted-foreground">
-              {isBootstrap ? "Defina o primeiro administrador" : "Acesso restrito"}
+              {isBootstrap ? "Defina o primeiro administrador" : "Entre com seu e-mail e senha"}
             </p>
           </div>
+          {isBootstrap && (
+            <div className="mb-4 rounded-lg border border-gold/40 bg-gold/10 p-3 text-xs text-foreground">
+              <strong className="block mb-1">⚠️ Primeiro acesso</strong>
+              Ainda não existe administrador. Defina abaixo o e-mail e senha que você usará para entrar daqui em diante. <strong>Guarde a senha</strong> — não há como recuperá-la depois.
+            </div>
+          )}
           <form onSubmit={isBootstrap ? onBootstrap : onLogin} className="space-y-4">
             <label className="block">
               <span className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
