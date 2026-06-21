@@ -27,11 +27,11 @@ type Row = {
   created_at: string;
 };
 
-function maskCpf(cpf: string | null) {
+function formatCpf(cpf: string | null) {
   if (!cpf) return "—";
   const d = cpf.replace(/\D/g, "");
   if (d.length !== 11) return cpf;
-  return `${d.slice(0, 3)}.***.***-${d.slice(9, 11)}`;
+  return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9, 11)}`;
 }
 
 function AdminPage() {
@@ -127,7 +127,7 @@ function AdminPage() {
     const lines = filtered.map((r) => [
       r.nome,
       r.telefone,
-      maskCpf(r.cpf),
+      formatCpf(r.cpf),
       r.adversario ?? "",
       `${r.placar_brasil ?? "?"}x${r.placar_adversario ?? "?"}`,
       r.payment_status,
@@ -287,7 +287,7 @@ function AdminPage() {
                       {r.telefone}
                     </a>
                   </td>
-                  <td className="px-3 py-2 font-mono text-xs">{maskCpf(r.cpf)}</td>
+                  <td className="px-3 py-2 font-mono text-xs">{formatCpf(r.cpf)}</td>
                   <td className="px-3 py-2">Brasil x {r.adversario ?? "?"}</td>
                   <td className="px-3 py-2 font-display">
                     {r.placar_brasil ?? "?"} × {r.placar_adversario ?? "?"}
