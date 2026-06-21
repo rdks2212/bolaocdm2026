@@ -302,6 +302,35 @@ function Index() {
                   <p className="mt-2 text-sm text-muted-foreground">
                     Pagamento confirmado. Boa sorte com seu palpite 🏆
                   </p>
+
+                  <div className="mt-6 space-y-3 rounded-xl border border-gold/30 bg-gold/5 p-4 text-left text-sm">
+                    <p className="flex items-start gap-2">
+                      <Phone className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
+                      <span>
+                        Em caso de suporte, entre em contato no WhatsApp:{" "}
+                        <a
+                          href="https://wa.me/5561993705622"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-semibold text-gold hover:underline"
+                        >
+                          (61) 99370-5622
+                        </a>
+                      </span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                      <Users className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
+                      <span>
+                        Acompanhe todos os palpites da partida em{" "}
+                        <Link to="/transparencia" className="font-semibold text-gold hover:underline">
+                          /transparencia
+                        </Link>
+                        .
+                      </span>
+                    </p>
+                    <p className="text-center font-display text-lg text-gold">Boa sorte! 🍀</p>
+                  </div>
+
                   <button onClick={resetAll} className="mt-6 text-sm font-semibold text-gold hover:underline">
                     Cadastrar outro palpite
                   </button>
