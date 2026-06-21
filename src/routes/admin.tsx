@@ -127,7 +127,7 @@ function AdminPage() {
     const lines = filtered.map((r) => [
       r.nome,
       r.telefone,
-      maskCpf(r.cpf),
+      formatCpf(r.cpf),
       r.adversario ?? "",
       `${r.placar_brasil ?? "?"}x${r.placar_adversario ?? "?"}`,
       r.payment_status,
