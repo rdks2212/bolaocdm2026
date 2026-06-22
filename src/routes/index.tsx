@@ -217,6 +217,19 @@ function Index() {
   return (
     <main className="min-h-screen px-4 py-10 sm:py-16">
       <Toaster position="top-center" />
+      <ConsentGate
+        state={consent}
+        onAccept={() => {
+          localStorage.setItem("bolao-consent", "accepted");
+          setConsent("accepted");
+        }}
+        onDecline={() => {
+          localStorage.setItem("bolao-consent", "declined");
+          setConsent("declined");
+          window.location.href = "https://www.google.com";
+        }}
+      />
+
       
 
       <div className="mx-auto max-w-xl">
