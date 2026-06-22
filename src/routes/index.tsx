@@ -148,7 +148,12 @@ function Index() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (consent !== "accepted") {
+      toast.error("Você precisa aceitar as regras do bolão para participar.");
+      return;
+    }
     if (!jogo) return;
+
     const cpfDigits = cpf.replace(/\D/g, "");
     const result = schema.safeParse({
       nome,
