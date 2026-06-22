@@ -121,6 +121,14 @@ function Index() {
   const [loading, setLoading] = useState(false);
   const [pix, setPix] = useState<PixData | null>(null);
   const [paid, setPaid] = useState(false);
+  const [consent, setConsent] = useState<"pending" | "accepted" | "declined">("pending");
+
+  useEffect(() => {
+    const stored = typeof window !== "undefined" ? localStorage.getItem("bolao-consent") : null;
+    if (stored === "accepted") setConsent("accepted");
+    else if (stored === "declined") setConsent("declined");
+  }, []);
+
 
   // Poll payment status every 4s while awaiting confirmation
   useEffect(() => {
