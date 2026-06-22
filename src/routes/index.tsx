@@ -556,3 +556,49 @@ function Confetti() {
     </div>
   );
 }
+
+function ConsentGate({
+  state,
+  onAccept,
+  onDecline,
+}: {
+  state: "pending" | "accepted" | "declined";
+  onAccept: () => void;
+  onDecline: () => void;
+}) {
+  if (state === "accepted") return null;
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 px-4 py-8 backdrop-blur-sm">
+      <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-2xl">
+        <h2 className="text-center font-display text-3xl text-gold">Regras do Bolão</h2>
+        <ol className="mt-5 space-y-3 text-sm text-foreground">
+          <li><span className="font-semibold text-gold">1.</span> Cada participante contribui com um valor fixo. O total arrecadado será o prêmio final.</li>
+          <li><span className="font-semibold text-gold">2.</span> Caso haja mais de um ganhador, o valor final será dividido igualmente entre as partes.</li>
+          <li><span className="font-semibold text-gold">3.</span> As taxas do gateway de pagamento são descontadas do lucro final. (6% + R$ 0,70)</li>
+          <li><span className="font-semibold text-gold">4.</span> Seu número cadastrado deve conter WhatsApp para que possamos entrar em contato caso seu palpite seja ganhador.</li>
+        </ol>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={onAccept}
+            className="rounded-xl bg-gold px-4 py-3 font-semibold text-gold-foreground transition hover:brightness-110"
+          >
+            Eu concordo
+          </button>
+          <button
+            type="button"
+            onClick={onDecline}
+            className="rounded-xl border border-border bg-input/40 px-4 py-3 font-semibold text-foreground transition hover:bg-input"
+          >
+            Não concordo, sair do site
+          </button>
+        </div>
+        {state === "declined" && (
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Você recusou as regras. As ferramentas de palpite estão desativadas.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
